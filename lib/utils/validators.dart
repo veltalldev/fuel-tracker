@@ -1,21 +1,38 @@
-class Validators {
-  static String? validateOdometerReading(String? value) {
-    // TODO: Implement odometer validation
-    return null;
-  }
+import 'package:flutter/material.dart';
 
-  static String? validateFuelVolume(String? value) {
-    // TODO: Implement fuel volume validation
-    return null;
-  }
+/// Validates odometer reading against business rules
+class OdometerValidator {
+  /// The previous odometer reading to validate against
+  final double? previousReading;
 
-  static String? validatePrice(String? value) {
-    // TODO: Implement price validation
-    return null;
-  }
+  const OdometerValidator({
+    this.previousReading,
+  });
 
-  static String? validateDate(DateTime? value) {
-    // TODO: Implement date validation
+  /// Validates an odometer reading
+  /// Returns null if valid, error message if invalid
+  String? validate(String? value) {
+    // Check if empty
+    if (value == null || value.isEmpty) {
+      return 'Odometer reading is required';
+    }
+
+    // Check if numeric
+    final reading = double.tryParse(value);
+    if (reading == null) {
+      return 'Please enter a valid number';
+    }
+
+    // Check if positive
+    if (reading <= 0) {
+      return 'Odometer reading must be greater than 0';
+    }
+
+    // Check if greater than previous reading
+    if (previousReading != null && reading <= previousReading!) {
+      return 'Reading must be greater than previous (${previousReading!.toStringAsFixed(1)})';
+    }
+
     return null;
   }
 }
