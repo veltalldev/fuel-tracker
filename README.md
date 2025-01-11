@@ -1,16 +1,25 @@
-# fuel_tracker
+# Fuel Tracker App
 
-A new Flutter project.
+A Flutter application for tracking vehicle fuel consumption and costs.
 
-## Getting Started
+## Project Overview
+- Single vehicle fuel consumption tracking (Phase 1)
+- Expandable to multi-vehicle support (Phase 2)
+- Local SQLite storage
+- Basic statistics and cost analysis
 
-This project is a starting point for a Flutter application.
+## Development Setup
+1. Install Flutter
+2. Clone this repository
+3. Run `flutter pub get`
+4. Run `flutter run`
 
-A few resources to get you started if this is your first Flutter project:
+## Project Structure
+- `/lib` - Application source code
+- `/test` - Test files
+- `/docs` - Project documentation
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Current Status
+Early development - Phase 1
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+For detailed documentation, see the [/docs](/docs) directory.
