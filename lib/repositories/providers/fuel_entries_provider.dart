@@ -141,11 +141,15 @@ class FuelEntriesNotifier extends StateNotifier<FuelEntriesState> {
       final newEntry = entry.copyWith(milesPerGallon: mpg);
 
       // Insert into database
-      final savedEntry = await _db.insert(newEntry);
+      await _db.insert(newEntry);
 
-      // Update state with new entry
+      // Get fresh sorted list
+      final entries = await _db.getAllFuelEntries();
+      entries.sort((a, b) => b.date.compareTo(a.date));
+
+      // Update state with sorted entries
       state = state.copyWith(
-        entries: [savedEntry, ...state.entries],
+        entries: entries,
         isLoading: false,
       );
     } catch (e) {
@@ -158,18 +162,34 @@ class FuelEntriesNotifier extends StateNotifier<FuelEntriesState> {
 
   Future<void> updateEntry(FuelEntry entry) async {
     try {
+      // Validate first, before changing state
+      if (!await validateEntry(entry)) {
+        return;
+      }
+
       state = state.copyWith(isLoading: true, error: null);
 
+      // Use the last reading we already have from validation
+      final lastReading = await getPreviousOdometerReading(entry.date);
+
+      // Calculate MPG
+      final mpg = lastReading != null
+          ? (entry.odometerReading - lastReading) / entry.fuelVolume
+          : null;
+
+      // Update entry with calculated MPG
+      final updatedEntry = entry.copyWith(milesPerGallon: mpg);
+
       // Update in database
-      await _db.update(entry);
+      await _db.update(updatedEntry);
 
-      // Update state
-      final updatedEntries = state.entries.map((e) {
-        return e.id == entry.id ? entry : e;
-      }).toList();
+      // Get fresh sorted list
+      final entries = await _db.getAllFuelEntries();
+      entries.sort((a, b) => b.date.compareTo(a.date));
 
+      // Update state with sorted entries
       state = state.copyWith(
-        entries: updatedEntries,
+        entries: entries,
         isLoading: false,
       );
     } catch (e) {

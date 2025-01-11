@@ -108,64 +108,34 @@ class _FuelEntryFormState extends ConsumerState<FuelEntryForm> {
     }
   }
 
-  Future<void> _submitForm() async {
+  void _submitForm() {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    if (!mounted) return;
     setState(() => _isLoading = true);
 
-    try {
-      final entry = FuelEntry(
-        id: widget.entry?.id,
-        date: _selectedDate,
-        odometerReading: double.parse(_odometerController.text),
-        fuelVolume: double.parse(_volumeController.text),
-        pricePerUnit: double.parse(_priceController.text),
-        totalCost: double.parse(_volumeController.text) *
-            double.parse(_priceController.text),
-        location:
-            _locationController.text.isEmpty ? null : _locationController.text,
-      );
+    final entry = FuelEntry(
+      id: widget.entry?.id,
+      date: _selectedDate,
+      odometerReading: double.parse(_odometerController.text),
+      fuelVolume: double.parse(_volumeController.text),
+      pricePerUnit: double.parse(_priceController.text),
+      totalCost: double.parse(_volumeController.text) *
+          double.parse(_priceController.text),
+      location:
+          _locationController.text.isEmpty ? null : _locationController.text,
+    );
 
-      // Save entry
-      if (widget.entry == null) {
-        await ref.read(fuelEntriesProvider.notifier).addEntry(entry);
-      } else {
-        await ref.read(fuelEntriesProvider.notifier).updateEntry(entry);
-      }
-
-      if (!mounted) return;
-
-      // Clear loading state before navigation
-      setState(() => _isLoading = false);
-
-      // Navigate back
-      Navigator.of(context).pop();
-
-      // Show success message after navigation
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Entry saved successfully'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-
-      // Clear loading state
-      setState(() => _isLoading = false);
-
-      // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to save entry: $e'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-          duration: const Duration(seconds: 3),
-        ),
-      );
+    // Fire and forget the save operation
+    if (widget.entry == null) {
+      ref.read(fuelEntriesProvider.notifier).addEntry(entry);
+    } else {
+      ref.read(fuelEntriesProvider.notifier).updateEntry(entry);
     }
+
+    // Navigate immediately
+    Navigator.pop(context);
   }
 
   @override
