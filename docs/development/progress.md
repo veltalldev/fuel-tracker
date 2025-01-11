@@ -70,6 +70,10 @@
 ### 🚧 In Progress
 - [ ] Form Validation
   - [ ] Implement input validators
+    - [x] Odometer (must increase)
+    - [ ] Numeric fields (positive numbers)
+    - [ ] Dates (no future values)
+    - [x] Create reusable methods
   - [ ] Add error messages
   - [ ] Validate before save
 
