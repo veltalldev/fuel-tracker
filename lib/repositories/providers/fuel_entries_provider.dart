@@ -111,15 +111,17 @@ class FuelEntriesNotifier extends StateNotifier<FuelEntriesState> {
 
   Future<void> addEntry(FuelEntry entry) async {
     try {
-      state = state.copyWith(isLoading: true, error: null);
-
-      // Validate entry
+      // Validate first, before changing state
       if (!await validateEntry(entry)) {
         return;
       }
 
-      // Calculate MPG
+      state = state.copyWith(isLoading: true, error: null);
+
+      // Use the last reading we already have from validation
       final lastReading = await getLastOdometerReading();
+
+      // Calculate MPG
       final mpg = lastReading != null
           ? (entry.odometerReading - lastReading) / entry.fuelVolume
           : null;
