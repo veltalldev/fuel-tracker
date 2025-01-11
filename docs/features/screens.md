@@ -1,47 +1,65 @@
 # Features and Screen Flow
 
-## Core Features (MVP) - Phase 1
-- Record fuel purchases (date, odometer, volume, price)
-- View fuel purchase history
-- Calculate and display basic statistics (MPG/cost per mile)
-- Edit/delete entries
+## Current Implementation (Phase 1)
 
-## Future Features - Phase 2
-- Multiple vehicle support
-- Vehicle management (add/edit/delete vehicles)
-- Per-vehicle statistics
-- Vehicle selection in fuel entries
+### Main List Screen
+- List of fuel entries sorted by date
+- Empty state message when no entries
+- Swipe-to-delete functionality
+- Tap to edit entries
+- FAB for adding new entries
+- Loading and error states
 
-## Screen Flow
+### Entry Form Screen
+- Add/Edit fuel entries
+- Form fields:
+  - Date (date picker, defaults to current)
+  - Odometer Reading (numeric input)
+  - Fuel Volume (numeric input)
+  - Price per Unit (numeric input)
+  - Location (optional text input)
+- Auto-calculated fields:
+  - Total Cost (volume × price)
+  - MPG (calculated from previous entry)
+- Loading state during operations
+- Validation feedback
+- Success/error messages via Snackbar
 
-### Phase 1 Screens
+## UI Components
 
-1. Main Screen
-   - List of fuel entries
-   - Summary statistics at top
-   - FAB for new entry
-   - Swipe to edit/delete
+### EntryCard
+- Date and total cost header
+- Odometer reading display
+- Fuel volume display
+- Price per unit display
+- MPG display (when available)
+- Location display (when available)
+- Swipe-to-delete gesture
+- Material 3 design styling
 
-2. Entry Form Screen
-   - Date/time picker (defaults to current)
-   - Location field (defaults to current if permitted)
-   - Number inputs for readings
-   - Auto-calculate total cost
-   - Save/Update button
+### Common Widgets
+- ErrorDisplay
+  - Error icon
+  - Error message
+  - Optional retry button
+- LoadingIndicator
+  - Centered progress indicator
+  - Consistent styling
 
-### Phase 2 Additions
+## Planned Features (Phase 1.5)
+- Statistics button in app bar
+- Basic statistics display
+  - Average MPG
+  - Total spent
+  - Total volume
+- Enhanced validation
+- Location autocomplete
 
-3. Vehicle Management Screen
-   - List of vehicles
-   - FAB for new vehicle
-   - Tap to edit
-   - Swipe to delete
-
-4. Vehicle Form Screen
-   - Text inputs for vehicle details
-   - Save/Update button
-
-5. Modified Main Screen
-   - Vehicle selector at top
-   - Statistics filtered by vehicle
-   - Entries filtered by vehicle
+## Future Features (Phase 2)
+- Vehicle management
+  - Add/edit/delete vehicles
+  - Vehicle selection in entries
+  - Per-vehicle statistics
+- Data export
+- Backup/restore
+- Enhanced statistics
