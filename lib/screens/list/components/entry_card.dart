@@ -14,6 +14,30 @@ class EntryCard extends StatelessWidget {
     this.onDismissed,
   });
 
+  Future<bool> _confirmDismiss(BuildContext context) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Delete Entry'),
+              content:
+                  const Text('Are you sure you want to delete this entry?'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('CANCEL'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('DELETE'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -25,7 +49,12 @@ class EntryCard extends StatelessWidget {
     return Dismissible(
       key: Key('entry-${entry.id}'),
       direction: DismissDirection.endToStart,
+      confirmDismiss: (_) => _confirmDismiss(context),
       onDismissed: onDismissed,
+      dismissThresholds: const {
+        DismissDirection.endToStart: 0.5, // Require 50% swipe to trigger
+      },
+      movementDuration: const Duration(milliseconds: 200),
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 16.0),
