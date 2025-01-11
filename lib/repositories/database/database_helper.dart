@@ -159,4 +159,13 @@ class DatabaseHelper {
       await insert(entry);
     }
   }
+
+  Future<bool> hasAnyEntries() async {
+    final db = await database;
+    final result = await db.query(
+      'fuel_entries',
+      limit: 1,
+    );
+    return result.isNotEmpty;
+  }
 }
