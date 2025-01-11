@@ -28,10 +28,24 @@ class _FuelEntryFormState extends ConsumerState<FuelEntryForm> {
 
   DateTime _selectedDate = DateTime.now();
   bool _isLoading = false;
+  OdometerValidator? _odometerValidator;
 
   @override
   void initState() {
     super.initState();
+    _initializeForm();
+    _setupValidators();
+  }
+
+  Future<void> _setupValidators() async {
+    final lastReading =
+        await ref.read(fuelEntriesProvider.notifier).getLastOdometerReading();
+    setState(() {
+      _odometerValidator = OdometerValidator(previousReading: lastReading);
+    });
+  }
+
+  void _initializeForm() {
     if (widget.entry != null) {
       _selectedDate = widget.entry!.date;
       _dateController.text = DateFormat.yMMMd().format(_selectedDate);
@@ -70,48 +84,46 @@ class _FuelEntryFormState extends ConsumerState<FuelEntryForm> {
   }
 
   Future<void> _submitForm() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
-      try {
-        final odometer = double.parse(_odometerController.text);
-        final volume = double.parse(_volumeController.text);
-        final price = double.parse(_priceController.text);
-        final location = _locationController.text.trim();
+    setState(() => _isLoading = true);
 
-        final entry = FuelEntry(
-          id: widget.entry?.id,
-          date: _selectedDate,
-          odometerReading: odometer,
-          fuelVolume: volume,
-          pricePerUnit: price,
-          totalCost: volume * price,
-          location: location.isEmpty ? null : location,
-          milesPerGallon: widget.entry?.milesPerGallon,
+    try {
+      final entry = FuelEntry(
+        id: widget.entry?.id,
+        date: _selectedDate,
+        odometerReading: double.parse(_odometerController.text),
+        fuelVolume: double.parse(_volumeController.text),
+        pricePerUnit: double.parse(_priceController.text),
+        totalCost: double.parse(_volumeController.text) *
+            double.parse(_priceController.text),
+        location:
+            _locationController.text.isEmpty ? null : _locationController.text,
+      );
+
+      if (widget.entry == null) {
+        await ref.read(fuelEntriesProvider.notifier).addEntry(entry);
+      } else {
+        await ref.read(fuelEntriesProvider.notifier).updateEntry(entry);
+      }
+
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save entry: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
         );
-
-        if (widget.entry == null) {
-          await ref.read(fuelEntriesProvider.notifier).addEntry(entry);
-        } else {
-          await ref.read(fuelEntriesProvider.notifier).updateEntry(entry);
-        }
-
-        if (mounted) {
-          Navigator.of(context).pop();
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error saving entry: $e'),
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-          );
-        }
-      } finally {
-        if (mounted) {
-          setState(() => _isLoading = false);
-        }
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
       }
     }
   }
@@ -119,14 +131,27 @@ class _FuelEntryFormState extends ConsumerState<FuelEntryForm> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final provider = ref.watch(fuelEntriesProvider);
+
+    // Show error if provider has an error
+    if (provider.error != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(provider.error!),
+            backgroundColor: theme.colorScheme.error,
+          ),
+        );
+      });
+    }
 
     return Scaffold(
       appBar: AppBar(
-        title:
-            Text(widget.entry == null ? 'Add Fuel Entry' : 'Edit Fuel Entry'),
+        title: Text(widget.entry == null ? 'Add Entry' : 'Edit Entry'),
       ),
       body: Form(
         key: _formKey,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
@@ -139,7 +164,7 @@ class _FuelEntryFormState extends ConsumerState<FuelEntryForm> {
               ),
               readOnly: true,
               onTap: () => _selectDate(context),
-              validator: (value) => Validators.validateDate(_selectedDate),
+              validator: (_) => dateValidator.validate(_selectedDate),
             ),
             const SizedBox(height: 16.0),
 
@@ -156,7 +181,7 @@ class _FuelEntryFormState extends ConsumerState<FuelEntryForm> {
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
               ],
-              validator: Validators.validateOdometerReading,
+              validator: _odometerValidator?.validate,
             ),
             const SizedBox(height: 16.0),
 
@@ -173,7 +198,7 @@ class _FuelEntryFormState extends ConsumerState<FuelEntryForm> {
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
               ],
-              validator: Validators.validateFuelVolume,
+              validator: volumeValidator.validate,
             ),
             const SizedBox(height: 16.0),
 
@@ -190,7 +215,7 @@ class _FuelEntryFormState extends ConsumerState<FuelEntryForm> {
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
               ],
-              validator: Validators.validatePrice,
+              validator: priceValidator.validate,
             ),
             const SizedBox(height: 16.0),
 

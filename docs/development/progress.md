@@ -76,13 +76,13 @@
     - [x] Create reusable methods
   - [ ] Integrate validators to UI
     - [x] Fuel Entry provider
-    - [ ] Fuel Entry forms
+    - [x] Fuel Entry forms
     - [ ] Entry card
   - [ ] Handle validation errors
-    - [ ] Show error messages inline
-    - [ ] Disable submit when invalid
+    - [x] Show error messages inline
+    - [x] Disable submit when invalid
     - [ ] Separate validation errors from DB errors
-    - [ ] Add real-time validation for numeric fields
+    - [x] Add real-time validation for numeric fields
   - [x] Add validation before database operations
 
 - [ ] Statistics Display
