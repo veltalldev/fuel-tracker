@@ -1,15 +1,24 @@
 # Technical Stack and Architecture
 
 ## Essential Dependencies
-- flutter_riverpod: State management
-- sqflite: Local database
-- intl: Date/number formatting
+- flutter_riverpod: ^3.0.0 - State management
+- sqflite: ^2.3.0 - Local database
+- intl: ^0.19.0 - Date/number formatting
 
 ## Architecture
-Simple three-layer architecture:
+Three-layer architecture:
 1. UI Layer (Screens & Widgets)
-2. Repository Layer (Data operations)
-3. Models (Data structures)
+   - Material 3 design system
+   - Responsive layouts
+   - Error and loading states
+2. State Layer (Riverpod Providers)
+   - Centralized state management
+   - CRUD operations
+   - Error handling
+3. Data Layer (SQLite & Models)
+   - Local persistence
+   - Data models
+   - Database operations
 
 ## Data Models
 
@@ -17,15 +26,18 @@ Simple three-layer architecture:
 // Phase 1: Single Vehicle Fuel Entry Model
 class FuelEntry {
   final int? id;
-  final DateTime date;      // defaults to current date/time
+  final DateTime date;
   final double odometerReading;
   final double fuelVolume;
   final double pricePerUnit;
   final double totalCost;
-  final String? location;   // defaults to current location if permitted
-
-  // Calculated fields
-  double? milesPerGallon;  // Calculated from previous entry
+  final String? location;
+  final double? milesPerGallon; // Calculated from previous entry
+  // Includes:
+  // - JSON serialization
+  // - copyWith functionality
+  // - equality comparison
+  // - toString method
 }
 
 // Phase 2: Vehicle Model (Added later)
@@ -44,12 +56,13 @@ class Vehicle {
 ```sql
 CREATE TABLE fuel_entries (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  date INTEGER NOT NULL,           -- stored as Unix timestamp
+  date INTEGER NOT NULL, -- stored as millisecondsSinceEpoch
   odometer_reading REAL NOT NULL,
   fuel_volume REAL NOT NULL,
   price_per_unit REAL NOT NULL,
   total_cost REAL NOT NULL,
-  location TEXT
+  location TEXT,
+  miles_per_gallon REAL -- calculated field
 );
 ```
 
