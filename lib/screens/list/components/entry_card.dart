@@ -20,22 +20,22 @@ class EntryCard extends StatelessWidget {
     final dateFormat = DateFormat.yMMMd();
     final currencyFormat = NumberFormat.currency(symbol: '\$');
     final numberFormat = NumberFormat.decimalPattern();
+    final mpgFormat = NumberFormat.decimalPattern()..maximumFractionDigits = 1;
 
     return Dismissible(
       key: Key('entry-${entry.id}'),
       direction: DismissDirection.endToStart,
       onDismissed: onDismissed,
       background: Container(
-        color: theme.colorScheme.error,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 16.0),
+        color: theme.colorScheme.error,
         child: Icon(
-          Icons.delete,
+          Icons.delete_outline,
           color: theme.colorScheme.onError,
         ),
       ),
       child: Card(
-        margin: const EdgeInsets.symmetric(vertical: 4.0),
         child: InkWell(
           onTap: onTap,
           child: Padding(
@@ -60,41 +60,45 @@ class EntryCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 8.0),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildDetailRow(
-                          context,
-                          'Odometer',
-                          '${numberFormat.format(entry.odometerReading)} mi',
-                        ),
-                        const SizedBox(height: 4.0),
-                        _buildDetailRow(
-                          context,
-                          'Volume',
-                          '${numberFormat.format(entry.fuelVolume)} gal',
-                        ),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        _buildDetailRow(
-                          context,
-                          'Price',
-                          '${currencyFormat.format(entry.pricePerUnit)}/gal',
-                        ),
-                        if (entry.milesPerGallon != null) ...[
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildDetailRow(
+                            context,
+                            'Odometer',
+                            '${numberFormat.format(entry.odometerReading)} mi',
+                          ),
                           const SizedBox(height: 4.0),
                           _buildDetailRow(
                             context,
-                            'MPG',
-                            numberFormat.format(entry.milesPerGallon),
+                            'Volume',
+                            '${numberFormat.format(entry.fuelVolume)} gal',
                           ),
                         ],
-                      ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildDetailRow(
+                            context,
+                            'Price',
+                            currencyFormat.format(entry.pricePerUnit),
+                          ),
+                          if (entry.milesPerGallon != null) ...[
+                            const SizedBox(height: 4.0),
+                            _buildDetailRow(
+                              context,
+                              'MPG',
+                              mpgFormat.format(entry.milesPerGallon),
+                              textColor: theme.colorScheme.primary,
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -104,15 +108,15 @@ class EntryCard extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.location_on_outlined,
-                        size: 16.0,
-                        color: theme.colorScheme.secondary,
+                        size: 16,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                       const SizedBox(width: 4.0),
                       Expanded(
                         child: Text(
                           entry.location!,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.secondary,
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -129,7 +133,12 @@ class EntryCard extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(BuildContext context, String label, String value) {
+  Widget _buildDetailRow(
+    BuildContext context,
+    String label,
+    String value, {
+    Color? textColor,
+  }) {
     final theme = Theme.of(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -142,7 +151,9 @@ class EntryCard extends StatelessWidget {
         ),
         Text(
           value,
-          style: theme.textTheme.bodyMedium,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: textColor,
+          ),
         ),
       ],
     );

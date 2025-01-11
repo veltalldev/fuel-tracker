@@ -68,20 +68,24 @@
   - [x] Handle loading states
 
 ### 🚧 In Progress
-- [ ] Form Validation
+- [x] Form Validation
   - [x] Implement input validators
     - [x] Odometer (must increase)
     - [x] Numeric fields (positive numbers)
     - [x] Dates (no future values)
     - [x] Create reusable methods
-  - [ ] Integrate validators to UI
+  - [x] Integrate validators to UI
     - [x] Fuel Entry provider
     - [x] Fuel Entry forms
-    - [ ] Entry card
-  - [ ] Handle validation errors
+    - [x] Entry card
+      - [x] Number formatting
+      - [x] Improved MPG display with consistent decimal places
+      - [x] Layout and spacing
+      - [x] Misc: color highlighting, text overflow, styling, accessibility
+  - [x] Handle validation errors
     - [x] Show error messages inline
     - [x] Disable submit when invalid
-    - [ ] Separate validation errors from DB errors
+    - [x] Separate validation errors from DB errors
     - [x] Add real-time validation for numeric fields
   - [x] Add validation before database operations
 
