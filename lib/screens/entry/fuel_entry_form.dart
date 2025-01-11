@@ -109,18 +109,29 @@ class _FuelEntryFormState extends ConsumerState<FuelEntryForm> {
         await ref.read(fuelEntriesProvider.notifier).updateEntry(entry);
       }
 
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
+      if (!mounted) return;
+
+      // Success - pop back to list screen
+      Navigator.of(context).pop();
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Entry saved successfully'),
+          duration: Duration(seconds: 2),
+        ),
+      );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to save entry: $e'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
+      if (!mounted) return;
+
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to save entry: $e'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          duration: const Duration(seconds: 3),
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
