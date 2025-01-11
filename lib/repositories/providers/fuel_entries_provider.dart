@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/fuel_entry.dart';
+import '../../utils/validators.dart';
 import '../database/database_helper.dart';
 
 // Provider for the DatabaseHelper instance
@@ -27,7 +28,7 @@ class FuelEntriesState {
     return FuelEntriesState(
       entries: entries ?? this.entries,
       isLoading: isLoading ?? this.isLoading,
-      error: error ?? this.error,
+      error: error,
     );
   }
 }
@@ -57,19 +58,71 @@ class FuelEntriesNotifier extends StateNotifier<FuelEntriesState> {
     }
   }
 
+  Future<double?> getLastOdometerReading() async {
+    try {
+      return await _db.getLastOdometerReading();
+    } catch (e) {
+      state = state.copyWith(
+        error: 'Failed to get last odometer reading: $e',
+      );
+      return null;
+    }
+  }
+
+  Future<bool> validateEntry(FuelEntry entry) async {
+    try {
+      final lastReading = await getLastOdometerReading();
+
+      // Create validators
+      final odometerValidator = OdometerValidator(previousReading: lastReading);
+
+      // Validate all fields
+      final odometerError =
+          odometerValidator.validate(entry.odometerReading.toString());
+      final volumeError = volumeValidator.validate(entry.fuelVolume.toString());
+      final priceError = priceValidator.validate(entry.pricePerUnit.toString());
+      final dateError = dateValidator.validate(entry.date);
+
+      // Collect all validation errors
+      final errors = <String>[];
+      if (odometerError != null) errors.add(odometerError);
+      if (volumeError != null) errors.add(volumeError);
+      if (priceError != null) errors.add(priceError);
+      if (dateError != null) errors.add(dateError);
+
+      // Update state if there are errors
+      if (errors.isNotEmpty) {
+        state = state.copyWith(
+          error: errors.join('\n'),
+          isLoading: false,
+        );
+        return false;
+      }
+
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        error: 'Validation error: $e',
+        isLoading: false,
+      );
+      return false;
+    }
+  }
+
   Future<void> addEntry(FuelEntry entry) async {
     try {
       state = state.copyWith(isLoading: true, error: null);
 
-      // Get the last odometer reading for MPG calculation
-      final lastReading = await _db.getLastOdometerReading();
+      // Validate entry
+      if (!await validateEntry(entry)) {
+        return;
+      }
 
-      // Calculate MPG if possible
-      final mpg = await _db.calculateMPG(
-        entry.odometerReading,
-        lastReading,
-        entry.fuelVolume,
-      );
+      // Calculate MPG
+      final lastReading = await getLastOdometerReading();
+      final mpg = lastReading != null
+          ? (entry.odometerReading - lastReading) / entry.fuelVolume
+          : null;
 
       // Create new entry with calculated MPG
       final newEntry = entry.copyWith(milesPerGallon: mpg);

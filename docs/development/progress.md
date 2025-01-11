@@ -74,15 +74,16 @@
     - [x] Numeric fields (positive numbers)
     - [x] Dates (no future values)
     - [x] Create reusable methods
-  - [ ] Add validators to input fields
-    - [ ] Form fields
+  - [ ] Integrate validators to UI
+    - [x] Fuel Entry provider
+    - [ ] Fuel Entry forms
+    - [ ] Entry card
+  - [ ] Handle validation errors
     - [ ] Show error messages inline
     - [ ] Disable submit when invalid
-    - [ ] Add real-time validation for numeric fields
-  - [ ] Add validation before database operations
-  - [ ] Add error messages
     - [ ] Separate validation errors from DB errors
-  - [ ] Validate before save
+    - [ ] Add real-time validation for numeric fields
+  - [x] Add validation before database operations
 
 - [ ] Statistics Display
   - [ ] Create statistics widget
