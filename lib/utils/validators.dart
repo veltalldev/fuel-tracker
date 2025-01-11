@@ -94,6 +94,45 @@ class NumericValidator {
   }
 }
 
+/// Validates date input against business rules
+class DateValidator {
+  /// The earliest allowed date
+  final DateTime? minDate;
+
+  /// Whether to allow future dates
+  final bool allowFuture;
+
+  const DateValidator({
+    this.minDate,
+    this.allowFuture = false,
+  });
+
+  /// Validates a date
+  /// Returns null if valid, error message if invalid
+  String? validate(DateTime? date) {
+    if (date == null) {
+      return 'Date is required';
+    }
+
+    // Check if date is in the future
+    if (!allowFuture && date.isAfter(DateTime.now())) {
+      return 'Date cannot be in the future';
+    }
+
+    // Check minimum date
+    if (minDate != null && date.isBefore(minDate!)) {
+      return 'Date must be after ${_formatDate(minDate!)}';
+    }
+
+    return null;
+  }
+
+  /// Formats a date for error messages
+  String _formatDate(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+}
+
 // Common validator instances
 const volumeValidator = NumericValidator(
   fieldName: 'Fuel volume',
@@ -103,4 +142,9 @@ const volumeValidator = NumericValidator(
 const priceValidator = NumericValidator(
   fieldName: 'Price',
   min: 0.01,
+);
+
+final dateValidator = DateValidator(
+  allowFuture: false,
+  minDate: DateTime(2000), // Reasonable minimum date
 );

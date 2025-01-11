@@ -69,12 +69,19 @@
 
 ### 🚧 In Progress
 - [ ] Form Validation
-  - [ ] Implement input validators
+  - [x] Implement input validators
     - [x] Odometer (must increase)
     - [x] Numeric fields (positive numbers)
-    - [ ] Dates (no future values)
+    - [x] Dates (no future values)
     - [x] Create reusable methods
+  - [ ] Add validators to input fields
+    - [ ] Form fields
+    - [ ] Show error messages inline
+    - [ ] Disable submit when invalid
+    - [ ] Add real-time validation for numeric fields
+  - [ ] Add validation before database operations
   - [ ] Add error messages
+    - [ ] Separate validation errors from DB errors
   - [ ] Validate before save
 
 - [ ] Statistics Display
