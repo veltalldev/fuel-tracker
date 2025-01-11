@@ -2,75 +2,67 @@
 
 ## Implementation Strategy
 
-### State Management
-```dart
-class FuelEntriesState {
-  final List<FuelEntry> entries;
-  final bool isLoading;
-  final String? error;
-}
-```
+### Validation Classes
+- OdometerValidator
+  - Validates against previous reading
+  - Ensures positive values
+  - Handles required field validation
+  
+- NumericValidator
+  - Configurable min/max values
+  - Zero handling options
+  - Customizable field names
+  
+- DateValidator
+  - Future date prevention
+  - Minimum date validation
+  - Required field validation
 
-### Error Handling Flow
-1. UI Layer shows loading state
-2. Operation attempted
-3. Success: Update state and UI
-4. Error: Display error message
-5. Allow retry where appropriate
+### Form Validation Flow
+1. Real-time field validation
+2. Form-level validation on submit
+3. Provider-level validation before DB operations
+4. Error display in UI:
+   - Inline field errors
+   - Snackbar messages
+   - Dialog confirmations
 
-## Database Errors
-- Wrap SQLite operations in try-catch blocks
-- Error messages propagated to UI
+### Database Operations
+- Validation before operations
+- Error propagation to UI
 - Loading states during operations
 - Proper cleanup on errors
-- Return Result<T> type for database operations
-- Standard error types:
-  ```dart
-  sealed class DatabaseError {
-    case ConnectionError();
-    case NotFoundError();
-    case ValidationError(String message);
-    case UnknownError(Object error);
-  }
-  ```
 
-## User Input Validation
+## Input Validation Rules
 
-### Phase 1 Validation
-- Required fields: odometer, volume, price
-- Business rules:
-  - Odometer must increase over time
-  - Volume and price must be positive
-  - Date cannot be in future
-- Show validation errors inline under fields
+### Required Fields
+- Odometer Reading
+  - Must be numeric
+  - Must be positive
+  - Must be greater than previous reading
+- Fuel Volume
+  - Must be numeric
+  - Must be greater than 0.1
+- Price per Unit
+  - Must be numeric
+  - Must be greater than 0.01
+- Date
+  - Required
+  - Cannot be in future
+  - Must be after year 2000
 
-### Phase 2 Additional Validation
-- Vehicle selection required for fuel entries
-- Vehicle name required
-- Prevent vehicle deletion with existing entries
-  (or implement cascade delete)
+### Optional Fields
+- Location
+  - Max length: 100 characters
 
-### Validation Timing
-- On form submission
-- Real-time for numeric fields
-- Before database operations
-
-## Error Messages
-Standard error messages for:
-- Database errors
-- Invalid input
-- Version conflicts
-- Permission denied
-
-## Error Handling Strategy
-1. Validate input before database operations
-2. Use Result type for all repository operations
-3. Display user-friendly error messages
-4. Log technical errors for debugging
-5. Implement proper error recovery where possible
+## Error Display Strategy
+- Field validation: Inline messages
+- Operation errors: Snackbar
+- Delete confirmation: Dialog
+- Loading states: Progress indicators
 
 ## Recovery Mechanisms
-- Retry failed operations
 - Form data preservation
-- State recovery on error
-- Proper error boundaries
+- Operation retry options
+- Clear error states
+- Validation feedback
