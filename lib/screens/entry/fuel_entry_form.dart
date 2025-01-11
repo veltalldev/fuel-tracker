@@ -34,13 +34,31 @@ class _FuelEntryFormState extends ConsumerState<FuelEntryForm> {
   void initState() {
     super.initState();
     _initializeForm();
-    _setupValidators();
+
+    // Add listener for date changes
+    _dateController.addListener(() {
+      final newDate = DateFormat.yMMMd().tryParse(_dateController.text);
+      if (newDate != null && newDate != _selectedDate) {
+        setState(() {
+          _selectedDate = newDate;
+        });
+        _setupValidators();
+      }
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _setupValidators();
+    });
   }
 
   Future<void> _setupValidators() async {
+    if (!mounted) return;
+
     final previousReading = await ref
         .read(fuelEntriesProvider.notifier)
         .getPreviousOdometerReading(_selectedDate);
+
+    if (!mounted) return;
     setState(() {
       _odometerValidator = OdometerValidator(
         previousReading: previousReading,
@@ -63,6 +81,7 @@ class _FuelEntryFormState extends ConsumerState<FuelEntryForm> {
 
   @override
   void dispose() {
+    _dateController.removeListener(() {}); // Clean up listener
     _dateController.dispose();
     _odometerController.dispose();
     _volumeController.dispose();
@@ -78,12 +97,14 @@ class _FuelEntryFormState extends ConsumerState<FuelEntryForm> {
       firstDate: DateTime(2000),
       lastDate: DateTime.now(),
     );
+
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
         _dateController.text = DateFormat.yMMMd().format(_selectedDate);
       });
-      _setupValidators();
+      // Update validator when date changes
+      await _setupValidators();
     }
   }
 
@@ -92,6 +113,7 @@ class _FuelEntryFormState extends ConsumerState<FuelEntryForm> {
       return;
     }
 
+    if (!mounted) return;
     setState(() => _isLoading = true);
 
     try {
@@ -107,6 +129,7 @@ class _FuelEntryFormState extends ConsumerState<FuelEntryForm> {
             _locationController.text.isEmpty ? null : _locationController.text,
       );
 
+      // Save entry
       if (widget.entry == null) {
         await ref.read(fuelEntriesProvider.notifier).addEntry(entry);
       } else {
@@ -115,10 +138,13 @@ class _FuelEntryFormState extends ConsumerState<FuelEntryForm> {
 
       if (!mounted) return;
 
-      // Success - pop back to list screen
+      // Clear loading state before navigation
+      setState(() => _isLoading = false);
+
+      // Navigate back
       Navigator.of(context).pop();
 
-      // Show success message
+      // Show success message after navigation
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Entry saved successfully'),
@@ -128,6 +154,9 @@ class _FuelEntryFormState extends ConsumerState<FuelEntryForm> {
     } catch (e) {
       if (!mounted) return;
 
+      // Clear loading state
+      setState(() => _isLoading = false);
+
       // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -136,10 +165,6 @@ class _FuelEntryFormState extends ConsumerState<FuelEntryForm> {
           duration: const Duration(seconds: 3),
         ),
       );
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
     }
   }
 
