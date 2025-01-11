@@ -14,6 +14,222 @@ class EntryCard extends StatelessWidget {
     this.onDismissed,
   });
 
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final dateFormat = DateFormat.MMMd();
+    final currencyFormat = NumberFormat.currency(symbol: '\$');
+    final volumeFormat = NumberFormat.decimalPattern()
+      ..maximumFractionDigits = 2;
+    final mpgFormat = NumberFormat.decimalPattern()..maximumFractionDigits = 1;
+    final numberFormat = NumberFormat.decimalPattern()
+      ..maximumFractionDigits = 0;
+
+    return Dismissible(
+      key: Key('entry-${entry.id}'),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (_) => _confirmDismiss(context),
+      onDismissed: onDismissed,
+      dismissThresholds: const {
+        DismissDirection.endToStart: 0.5,
+      },
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 16.0),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.errorContainer,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Icon(
+          Icons.delete_outline,
+          color: theme.colorScheme.onErrorContainer,
+        ),
+      ),
+      child: Card(
+        elevation: 2,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              dateFormat.format(entry.date),
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              currencyFormat.format(entry.totalCost),
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (entry.milesPerGallon != null)
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.secondaryContainer,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  mpgFormat.format(entry.milesPerGallon!),
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    color:
+                                        theme.colorScheme.onSecondaryContainer,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  'MPG',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color:
+                                        theme.colorScheme.onSecondaryContainer,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    _buildDetailChip(
+                      context,
+                      Icons.speed_outlined,
+                      numberFormat.format(entry.odometerReading),
+                      'mi',
+                    ),
+                    const SizedBox(width: 8),
+                    _buildDetailChip(
+                      context,
+                      Icons.local_gas_station_outlined,
+                      volumeFormat.format(entry.fuelVolume),
+                      'gal',
+                    ),
+                    const SizedBox(width: 8),
+                    _buildDetailChip(
+                      context,
+                      Icons.attach_money,
+                      currencyFormat.format(entry.pricePerUnit),
+                      '/gal',
+                    ),
+                  ],
+                ),
+                if (entry.location != null) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on_outlined,
+                        size: 16,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          entry.location!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailChip(
+    BuildContext context,
+    IconData icon,
+    String value,
+    String unit,
+  ) {
+    final theme = Theme.of(context);
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceVariant,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: value,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      TextSpan(
+                        text: ' $unit',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<bool> _confirmDismiss(BuildContext context) async {
     return await showDialog<bool>(
           context: context,
@@ -36,155 +252,5 @@ class EntryCard extends StatelessWidget {
           },
         ) ??
         false;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final dateFormat = DateFormat.yMMMd();
-    final currencyFormat = NumberFormat.currency(symbol: '\$');
-    final numberFormat = NumberFormat.decimalPattern();
-    final mpgFormat = NumberFormat.decimalPattern()..maximumFractionDigits = 1;
-
-    return Dismissible(
-      key: Key('entry-${entry.id}'),
-      direction: DismissDirection.endToStart,
-      confirmDismiss: (_) => _confirmDismiss(context),
-      onDismissed: onDismissed,
-      dismissThresholds: const {
-        DismissDirection.endToStart: 0.5, // Require 50% swipe to trigger
-      },
-      movementDuration: const Duration(milliseconds: 200),
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 16.0),
-        color: theme.colorScheme.error,
-        child: Icon(
-          Icons.delete_outline,
-          color: theme.colorScheme.onError,
-        ),
-      ),
-      child: Card(
-        child: InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      dateFormat.format(entry.date),
-                      style: theme.textTheme.titleMedium,
-                    ),
-                    Text(
-                      currencyFormat.format(entry.totalCost),
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8.0),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildDetailRow(
-                            context,
-                            'Odometer',
-                            '${numberFormat.format(entry.odometerReading)} mi',
-                          ),
-                          const SizedBox(height: 4.0),
-                          _buildDetailRow(
-                            context,
-                            'Volume',
-                            '${numberFormat.format(entry.fuelVolume)} gal',
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildDetailRow(
-                            context,
-                            'Price',
-                            currencyFormat.format(entry.pricePerUnit),
-                          ),
-                          if (entry.milesPerGallon != null) ...[
-                            const SizedBox(height: 4.0),
-                            _buildDetailRow(
-                              context,
-                              'MPG',
-                              mpgFormat.format(entry.milesPerGallon),
-                              textColor: theme.colorScheme.primary,
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                if (entry.location != null && entry.location!.isNotEmpty) ...[
-                  const SizedBox(height: 8.0),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.location_on_outlined,
-                        size: 16,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 4.0),
-                      Expanded(
-                        child: Text(
-                          entry.location!,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(
-    BuildContext context,
-    String label,
-    String value, {
-    Color? textColor,
-  }) {
-    final theme = Theme.of(context);
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          '$label: ',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-        Text(
-          value,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: textColor,
-          ),
-        ),
-      ],
-    );
   }
 }
