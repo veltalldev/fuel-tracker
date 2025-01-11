@@ -1,3 +1,5 @@
+import '../../../utils/constants.dart';
+
 const String createFuelEntriesTable = '''
   CREATE TABLE $tableFuelEntries (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -6,7 +8,8 @@ const String createFuelEntriesTable = '''
     fuel_volume REAL NOT NULL,
     price_per_unit REAL NOT NULL,
     total_cost REAL NOT NULL,
-    location TEXT
+    location TEXT,
+    miles_per_gallon REAL
   )
 ''';
 
