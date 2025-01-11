@@ -52,6 +52,8 @@
   - [x] Create ErrorDisplay widget
   - [x] Create LoadingIndicator widget
   - [x] Implement consistent styling
+  - [x] Create form group components
+  - [x] Create labeled text field component
 
 - [x] List Screen
   - [x] Create entries list view
@@ -59,6 +61,7 @@
   - [x] Add swipe-to-delete
   - [x] Handle empty state
   - [x] Add FAB for new entries
+  - [x] Month-based grouping
 
 - [x] Entry Form
   - [x] Create form layout
@@ -66,33 +69,31 @@
   - [x] Implement numeric inputs
   - [x] Add location field
   - [x] Handle loading states
+  - [x] Real-time total calculation
+  - [x] Material 3 card groups
+  - [x] Edit mode support
+
+### ✅ Form Validation
+- [x] Implement input validators
+  - [x] Odometer (must increase)
+  - [x] Numeric fields (positive numbers)
+  - [x] Dates (no future values)
+  - [x] Create reusable methods
+- [x] Integrate validators to UI
+  - [x] Fuel Entry provider
+  - [x] Fuel Entry forms
+  - [x] Entry card
+    - [x] Number formatting
+    - [x] Improved MPG display
+    - [x] Layout and spacing
 
 ### 🚧 In Progress
-- [x] Form Validation
-  - [x] Implement input validators
-    - [x] Odometer (must increase)
-    - [x] Numeric fields (positive numbers)
-    - [x] Dates (no future values)
-    - [x] Create reusable methods
-  - [x] Integrate validators to UI
-    - [x] Fuel Entry provider
-    - [x] Fuel Entry forms
-    - [x] Entry card
-      - [x] Number formatting
-      - [x] Improved MPG display with consistent decimal places
-      - [x] Layout and spacing
-      - [x] Misc: color highlighting, text overflow, styling, accessibility
-  - [x] Handle validation errors
-    - [x] Show error messages inline
-    - [x] Disable submit when invalid
-    - [x] Separate validation errors from DB errors
-    - [x] Add real-time validation for numeric fields
-  - [x] Add validation before database operations
-
-- [ ] Statistics Display
-  - [ ] Create statistics widget
-  - [ ] Calculate averages
-  - [ ] Add to app bar
+- [ ] Statistics button in app bar
+- [ ] Basic statistics display
+  - [ ] Average MPG
+  - [ ] Total spent
+  - [ ] Total volume
+- [ ] Location autocomplete
 
 ### 📅 Upcoming
 - [ ] Enhanced Features
