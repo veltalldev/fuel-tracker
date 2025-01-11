@@ -10,7 +10,12 @@ import 'package:flutter/services.dart';
 import 'package:fuel_tracker/utils/validators.dart';
 
 class AddEntryScreen extends ConsumerStatefulWidget {
-  const AddEntryScreen({super.key});
+  final FuelEntry? entry;
+
+  const AddEntryScreen({
+    super.key,
+    this.entry,
+  });
 
   @override
   ConsumerState<AddEntryScreen> createState() => _AddEntryScreenState();
@@ -22,16 +27,25 @@ class _AddEntryScreenState extends ConsumerState<AddEntryScreen> {
   late TextEditingController _volumeController;
   late TextEditingController _priceController;
   late TextEditingController _locationController;
-  DateTime _selectedDate = DateTime.now();
+  late DateTime _selectedDate;
   OdometerValidator? _odometerValidator;
 
   @override
   void initState() {
     super.initState();
-    _odometerController = TextEditingController();
-    _volumeController = TextEditingController()..addListener(_updateTotal);
-    _priceController = TextEditingController()..addListener(_updateTotal);
-    _locationController = TextEditingController();
+    _selectedDate = widget.entry?.date ?? DateTime.now();
+    _odometerController = TextEditingController(
+      text: widget.entry?.odometerReading.toString(),
+    );
+    _volumeController = TextEditingController(
+      text: widget.entry?.fuelVolume.toString(),
+    )..addListener(_updateTotal);
+    _priceController = TextEditingController(
+      text: widget.entry?.pricePerUnit.toString(),
+    )..addListener(_updateTotal);
+    _locationController = TextEditingController(
+      text: widget.entry?.location,
+    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _setupValidators();
@@ -81,13 +95,13 @@ class _AddEntryScreenState extends ConsumerState<AddEntryScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Add Entry',
+          widget.entry == null ? 'Add Entry' : 'Edit Entry',
           style: theme.textTheme.titleLarge,
         ),
+        centerTitle: true,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Divider(
-              height: 1, color: Theme.of(context).dividerColor.withAlpha(122)),
+          child: Divider(height: 1),
         ),
       ),
       body: Form(
@@ -238,6 +252,7 @@ class _AddEntryScreenState extends ConsumerState<AddEntryScreen> {
     if (_formKey.currentState?.validate() ?? false) {
       try {
         final entry = FuelEntry(
+          id: widget.entry?.id,
           date: _selectedDate,
           odometerReading: double.parse(_odometerController.text),
           fuelVolume: double.parse(_volumeController.text),
@@ -249,14 +264,20 @@ class _AddEntryScreenState extends ConsumerState<AddEntryScreen> {
               double.parse(_volumeController.text),
         );
 
-        await ref.read(fuelEntriesProvider.notifier).addEntry(entry);
+        if (widget.entry == null) {
+          await ref.read(fuelEntriesProvider.notifier).addEntry(entry);
+        } else {
+          await ref.read(fuelEntriesProvider.notifier).updateEntry(entry);
+        }
+
         if (mounted) {
           Navigator.pop(context);
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to add entry: $e'),
+            content: Text(
+                'Failed to ${widget.entry == null ? 'add' : 'update'} entry: $e'),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );

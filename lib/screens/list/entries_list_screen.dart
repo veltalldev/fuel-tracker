@@ -103,7 +103,7 @@ class EntriesListScreen extends ConsumerWidget {
   void _editEntry(BuildContext context, entry) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => FuelEntryForm(entry: entry),
+        builder: (context) => AddEntryScreen(entry: entry),
       ),
     );
   }
