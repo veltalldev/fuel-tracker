@@ -46,6 +46,10 @@ class FuelEntriesNotifier extends StateNotifier<FuelEntriesState> {
     try {
       state = state.copyWith(isLoading: true, error: null);
       final entries = await _db.getAllFuelEntries();
+
+      // Sort entries by date, newest first
+      entries.sort((a, b) => b.date.compareTo(a.date));
+
       state = state.copyWith(
         entries: entries,
         isLoading: false,
@@ -58,12 +62,18 @@ class FuelEntriesNotifier extends StateNotifier<FuelEntriesState> {
     }
   }
 
-  Future<double?> getLastOdometerReading() async {
+  Future<double?> getPreviousOdometerReading(DateTime entryDate) async {
     try {
-      return await _db.getLastOdometerReading();
+      // Get the reading from the most recent entry BEFORE the given date
+      final entries = state.entries
+          .where((e) => e.date.isBefore(entryDate))
+          .toList()
+        ..sort((a, b) => b.date.compareTo(a.date));
+
+      return entries.isNotEmpty ? entries.first.odometerReading : null;
     } catch (e) {
       state = state.copyWith(
-        error: 'Failed to get last odometer reading: $e',
+        error: 'Failed to get previous odometer reading: $e',
       );
       return null;
     }
@@ -71,10 +81,11 @@ class FuelEntriesNotifier extends StateNotifier<FuelEntriesState> {
 
   Future<bool> validateEntry(FuelEntry entry) async {
     try {
-      final lastReading = await getLastOdometerReading();
+      final previousReading = await getPreviousOdometerReading(entry.date);
 
       // Create validators
-      final odometerValidator = OdometerValidator(previousReading: lastReading);
+      final odometerValidator =
+          OdometerValidator(previousReading: previousReading);
 
       // Validate all fields
       final odometerError =
@@ -119,7 +130,7 @@ class FuelEntriesNotifier extends StateNotifier<FuelEntriesState> {
       state = state.copyWith(isLoading: true, error: null);
 
       // Use the last reading we already have from validation
-      final lastReading = await getLastOdometerReading();
+      final lastReading = await getPreviousOdometerReading(entry.date);
 
       // Calculate MPG
       final mpg = lastReading != null

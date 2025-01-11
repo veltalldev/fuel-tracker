@@ -38,10 +38,13 @@ class _FuelEntryFormState extends ConsumerState<FuelEntryForm> {
   }
 
   Future<void> _setupValidators() async {
-    final lastReading =
-        await ref.read(fuelEntriesProvider.notifier).getLastOdometerReading();
+    final previousReading = await ref
+        .read(fuelEntriesProvider.notifier)
+        .getPreviousOdometerReading(_selectedDate);
     setState(() {
-      _odometerValidator = OdometerValidator(previousReading: lastReading);
+      _odometerValidator = OdometerValidator(
+        previousReading: previousReading,
+      );
     });
   }
 
@@ -80,6 +83,7 @@ class _FuelEntryFormState extends ConsumerState<FuelEntryForm> {
         _selectedDate = picked;
         _dateController.text = DateFormat.yMMMd().format(_selectedDate);
       });
+      _setupValidators();
     }
   }
 
