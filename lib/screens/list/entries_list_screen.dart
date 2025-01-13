@@ -6,9 +6,18 @@ import '../entry/fuel_entry_form.dart';
 import 'components/entry_card.dart';
 import 'components/month_header.dart';
 import '../add/add_entry_screen.dart';
+import 'components/stats_section.dart';
+import 'package:collection/collection.dart';
 
 class EntriesListScreen extends ConsumerWidget {
   const EntriesListScreen({super.key});
+
+  Map<DateTime, List<FuelEntry>> groupEntriesByMonth(List<FuelEntry> entries) {
+    return groupBy(
+      entries,
+      (entry) => DateTime(entry.date.year, entry.date.month),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,52 +37,56 @@ class EntriesListScreen extends ConsumerWidget {
             return Center(child: Text(entriesState.error!));
           }
 
-          if (entriesState.entries.isEmpty) {
-            return const Center(child: Text('No entries yet'));
-          }
+          final groupedEntries = groupEntriesByMonth(entriesState.entries);
 
-          // Group entries by month
-          final groupedEntries = <DateTime, List<FuelEntry>>{};
-          for (final entry in entriesState.entries) {
-            final monthStart = DateTime(entry.date.year, entry.date.month);
-            groupedEntries.putIfAbsent(monthStart, () => []).add(entry);
-          }
-
-          return ListView.builder(
-            padding: const EdgeInsets.only(
-              left: 4,
-              right: 4,
-              bottom: 80,
-              top: 8,
-            ),
-            itemCount: groupedEntries.entries.fold<int>(
-              0,
-              (sum, entry) =>
-                  sum + entry.value.length + 1, // +1 for each header
-            ),
-            itemBuilder: (context, index) {
-              // Find which group this index belongs to
-              int runningIndex = 0;
-              for (final monthEntry in groupedEntries.entries) {
-                if (index == runningIndex) {
-                  // This is a header
-                  return MonthHeader(date: monthEntry.key);
-                }
-                if (index < runningIndex + monthEntry.value.length + 1) {
-                  // This is an entry in the current month
-                  final entry = monthEntry.value[index - runningIndex - 1];
-                  return EntryCard(
-                    entry: entry,
-                    onTap: () => _editEntry(context, entry),
-                    onDismissed: (direction) => entry.id != null
-                        ? _deleteEntry(context, ref, entry.id!)
-                        : null,
-                  );
-                }
-                runningIndex += monthEntry.value.length + 1;
-              }
-              return null;
-            },
+          return Column(
+            children: [
+              const StatsSection(),
+              Expanded(
+                child: entriesState.entries.isEmpty
+                    ? const Center(child: Text('No entries yet'))
+                    : ListView.builder(
+                        padding: const EdgeInsets.only(
+                          left: 4,
+                          right: 4,
+                          bottom: 80,
+                          top: 8,
+                        ),
+                        itemCount: groupedEntries.entries.fold<int>(
+                          0,
+                          (sum, entry) =>
+                              sum +
+                              entry.value.length +
+                              1, // +1 for each header
+                        ),
+                        itemBuilder: (context, index) {
+                          // Find which group this index belongs to
+                          int runningIndex = 0;
+                          for (final monthEntry in groupedEntries.entries) {
+                            if (index == runningIndex) {
+                              // This is a header
+                              return MonthHeader(date: monthEntry.key);
+                            }
+                            if (index <
+                                runningIndex + monthEntry.value.length + 1) {
+                              // This is an entry in the current month
+                              final entry =
+                                  monthEntry.value[index - runningIndex - 1];
+                              return EntryCard(
+                                entry: entry,
+                                onTap: () => _editEntry(context, entry),
+                                onDismissed: (direction) => entry.id != null
+                                    ? _deleteEntry(context, ref, entry.id!)
+                                    : null,
+                              );
+                            }
+                            runningIndex += monthEntry.value.length + 1;
+                          }
+                          return null;
+                        },
+                      ),
+              ),
+            ],
           );
         },
       ),
