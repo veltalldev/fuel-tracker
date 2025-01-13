@@ -221,7 +221,7 @@ class _AddEntryScreenState extends ConsumerState<AddEntryScreen> {
                 ),
               ),
               child: Text(
-                'Add Entry',
+                widget.entry == null ? 'Add Entry' : 'Save Changes',
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.w500,

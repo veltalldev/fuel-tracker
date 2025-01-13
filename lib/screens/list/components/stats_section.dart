@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -22,9 +20,12 @@ class StatsSection extends ConsumerWidget {
     final lastEntry = entries.reduce((a, b) => a.date.isAfter(b.date) ? a : b);
 
     // Find second-to-last entry
-    final secondLastEntry = entries
-        .where((e) => e.date.isBefore(lastEntry.date))
-        .reduce((a, b) => a.date.isAfter(b.date) ? a : b);
+    final previousEntries =
+        entries.where((e) => e.date.isBefore(lastEntry.date));
+    if (previousEntries.isEmpty) return const SizedBox.shrink();
+
+    final secondLastEntry =
+        previousEntries.reduce((a, b) => a.date.isAfter(b.date) ? a : b);
 
     // Calculate last trip distance
     final lastTripDistance =
@@ -61,153 +62,149 @@ class StatsSection extends ConsumerWidget {
       efficiency = totalDistance / totalVolume;
     }
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Last Fill-up',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.colorScheme.onSurface.withOpacity(0.7),
-                          ),
+    return Column(
+      children: [
+        // Just the 2x2 grid stats
+        Row(
+          children: [
+            Expanded(
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Last Fill-up',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withAlpha(200),
                         ),
+                      ),
+                      Text(
+                        NumberFormat.currency(symbol: '\$').format(
+                            lastEntry.fuelVolume * lastEntry.pricePerUnit),
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontFamily: GoogleFonts.jetBrainsMono().fontFamily,
+                        ),
+                      ),
+                      Text(
+                        '${lastEntry.fuelVolume.toStringAsFixed(1)} gal × \$${lastEntry.pricePerUnit.toStringAsFixed(2)}/gal',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurface.withAlpha(200),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Monthly Spent',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withAlpha(200),
+                        ),
+                      ),
+                      Text(
+                        NumberFormat.currency(symbol: '\$')
+                            .format(monthlySpent),
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontFamily: GoogleFonts.jetBrainsMono().fontFamily,
+                        ),
+                      ),
+                      Text(
+                        '${monthlyVolume.toStringAsFixed(1)} gallons total',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurface.withAlpha(122),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Last Trip',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withAlpha(200),
+                        ),
+                      ),
+                      if (entries.length >= 2) ...[
                         Text(
-                          NumberFormat.currency(symbol: '\$').format(
-                              lastEntry.fuelVolume * lastEntry.pricePerUnit),
+                          '${lastTripDistance.toStringAsFixed(0)} mi',
                           style: theme.textTheme.headlineSmall?.copyWith(
                             color: theme.colorScheme.primary,
                             fontFamily: GoogleFonts.jetBrainsMono().fontFamily,
                           ),
                         ),
                         Text(
-                          '${lastEntry.fuelVolume.toStringAsFixed(1)} gal × \$${lastEntry.pricePerUnit.toStringAsFixed(2)}/gal',
+                          'Distance between fills',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface.withOpacity(0.5),
+                            color: theme.colorScheme.onSurface.withAlpha(122),
                           ),
                         ),
                       ],
-                    ),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Monthly Spent',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.colorScheme.onSurface.withOpacity(0.7),
-                          ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Overall Efficiency',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withAlpha(200),
                         ),
-                        Text(
-                          NumberFormat.currency(symbol: '\$')
-                              .format(monthlySpent),
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontFamily: GoogleFonts.jetBrainsMono().fontFamily,
-                          ),
+                      ),
+                      Text(
+                        '${efficiency?.toStringAsFixed(1) ?? '--'} mpg',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontFamily: GoogleFonts.jetBrainsMono().fontFamily,
                         ),
-                        Text(
-                          '${monthlyVolume.toStringAsFixed(1)} gallons total',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface.withOpacity(0.5),
-                          ),
+                      ),
+                      Text(
+                        'All-time average',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurface.withAlpha(122),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Last Trip',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.colorScheme.onSurface.withOpacity(0.7),
-                          ),
-                        ),
-                        if (entries.length >= 2) ...[
-                          Text(
-                            '${lastTripDistance.toStringAsFixed(0)} mi',
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              color: theme.colorScheme.primary,
-                              fontFamily:
-                                  GoogleFonts.jetBrainsMono().fontFamily,
-                            ),
-                          ),
-                          Text(
-                            'Distance between fills',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color:
-                                  theme.colorScheme.onSurface.withOpacity(0.5),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Overall Efficiency',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.colorScheme.onSurface.withOpacity(0.7),
-                          ),
-                        ),
-                        Text(
-                          '${efficiency?.toStringAsFixed(1) ?? '--'} mpg',
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontFamily: GoogleFonts.jetBrainsMono().fontFamily,
-                          ),
-                        ),
-                        Text(
-                          'All-time average',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface.withOpacity(0.5),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/fuel_entry.dart';
 import '../../utils/validators.dart';
 import '../database/database_helper.dart';
+import '../../data/initial_data.dart';
 
 // Provider for the DatabaseHelper instance
 final databaseProvider = Provider<DatabaseHelper>((ref) {
@@ -38,8 +39,16 @@ class FuelEntriesNotifier extends StateNotifier<FuelEntriesState> {
   final DatabaseHelper _db;
 
   FuelEntriesNotifier(this._db) : super(const FuelEntriesState()) {
-    // Load entries when the provider is initialized
-    loadEntries();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    // Check if we need initial data
+    if (!await _db.hasAnyEntries()) {
+      await insertInitialData();
+    }
+    // Then load all entries
+    await loadEntries();
   }
 
   Future<void> loadEntries() async {

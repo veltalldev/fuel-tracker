@@ -2,15 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fuel_tracker/models/fuel_entry.dart';
 import '../../repositories/providers/fuel_entries_provider.dart';
-import '../entry/fuel_entry_form.dart';
 import 'components/entry_card.dart';
 import 'components/month_header.dart';
 import '../add/add_entry_screen.dart';
 import 'components/stats_section.dart';
+import 'components/collapsible_stats_section.dart';
 import 'package:collection/collection.dart';
+import 'components/efficiency_chart.dart';
 
-class EntriesListScreen extends ConsumerWidget {
+class EntriesListScreen extends ConsumerStatefulWidget {
   const EntriesListScreen({super.key});
+
+  @override
+  ConsumerState<EntriesListScreen> createState() => _EntriesListScreenState();
+}
+
+class _EntriesListScreenState extends ConsumerState<EntriesListScreen> {
+  bool _showDivider = false;
 
   Map<DateTime, List<FuelEntry>> groupEntriesByMonth(List<FuelEntry> entries) {
     return groupBy(
@@ -20,7 +28,7 @@ class EntriesListScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Fuel Tracker'),
@@ -41,49 +49,91 @@ class EntriesListScreen extends ConsumerWidget {
 
           return Column(
             children: [
-              const StatsSection(),
+              const CollapsibleStatsSection(
+                child: StatsSection(),
+              ),
+              if (entriesState.entries.length >= 2)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: EfficiencyChart(entries: entriesState.entries),
+                ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 200),
+                  opacity: _showDivider ? 1.0 : 0.0,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Divider(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withAlpha(80),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Text(
+                          "Fill History",
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primary
+                                        .withAlpha(80),
+                                  ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Divider(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withAlpha(80),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               Expanded(
                 child: entriesState.entries.isEmpty
                     ? const Center(child: Text('No entries yet'))
-                    : ListView.builder(
-                        padding: const EdgeInsets.only(
-                          left: 4,
-                          right: 4,
-                          bottom: 80,
-                          top: 8,
-                        ),
-                        itemCount: groupedEntries.entries.fold<int>(
-                          0,
-                          (sum, entry) =>
-                              sum +
-                              entry.value.length +
-                              1, // +1 for each header
-                        ),
-                        itemBuilder: (context, index) {
-                          // Find which group this index belongs to
-                          int runningIndex = 0;
-                          for (final monthEntry in groupedEntries.entries) {
-                            if (index == runningIndex) {
-                              // This is a header
-                              return MonthHeader(date: monthEntry.key);
-                            }
-                            if (index <
-                                runningIndex + monthEntry.value.length + 1) {
-                              // This is an entry in the current month
-                              final entry =
-                                  monthEntry.value[index - runningIndex - 1];
-                              return EntryCard(
-                                entry: entry,
-                                onTap: () => _editEntry(context, entry),
-                                onDismissed: (direction) => entry.id != null
-                                    ? _deleteEntry(context, ref, entry.id!)
-                                    : null,
-                              );
-                            }
-                            runningIndex += monthEntry.value.length + 1;
+                    : NotificationListener<ScrollNotification>(
+                        onNotification: (notification) {
+                          if (notification is ScrollUpdateNotification) {
+                            setState(() {
+                              _showDivider = notification.metrics.pixels > 20;
+                            });
                           }
-                          return null;
+                          return true;
                         },
+                        child: ListView.builder(
+                          padding: const EdgeInsets.only(
+                            left: 4,
+                            right: 4,
+                            bottom: 80,
+                            top: 8,
+                          ),
+                          itemCount: groupedEntries.entries.length,
+                          itemBuilder: (context, index) {
+                            final entry =
+                                groupedEntries.entries.elementAt(index);
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                MonthHeader(date: entry.key),
+                                ...entry.value.map(
+                                  (fuelEntry) => EntryCard(
+                                    entry: fuelEntry,
+                                    onTap: () => _editEntry(context, fuelEntry),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
                       ),
               ),
             ],
