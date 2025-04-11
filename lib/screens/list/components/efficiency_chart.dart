@@ -52,7 +52,7 @@ class EfficiencyChart extends StatelessWidget {
     final range = maxY - minY;
     final padding = range * 0.1; // 10% padding
     final interval =
-        range > 0 ? range / 1.5 : 1.0; // Ensure non-zero interval with fallback
+        range > 0 ? range / 1.3 : 1.0; // Ensure non-zero interval with fallback
 
     // Round to nearest 0.5 to avoid awkward label placement
     final roundedMinY = (minY - padding - 0.25).roundToDouble() * 2 / 2;

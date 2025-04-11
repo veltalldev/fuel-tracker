@@ -5,6 +5,13 @@ import '../models/fuel_entry.dart';
 final List<FuelEntry> initialData = [
   // Most recent entries first (for proper sorting)
   FuelEntry(
+    date: DateTime(2025, 1, 11),
+    odometerReading: 152531,
+    fuelVolume: 13.54,
+    pricePerUnit: 3.899,
+    totalCost: 13.54 * 3.899,
+  ),
+  FuelEntry(
     date: DateTime(2025, 1, 10),
     odometerReading: 152231,
     fuelVolume: 12.002,
